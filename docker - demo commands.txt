@@ -1,0 +1,45 @@
+DELETE DANGLING IMAGES
+docker image prune --filter="dangling=true"
+
+docker stack rm grid
+//docker image rm postgres-metaverse-image
+//docker image rm postgres-metaverse-image-2
+docker container rm postgres-metaverse-container -f
+docker container rm postgres-metaverse-container-2 -f
+docker network prune
+docker volume prune 
+
+DOCKER NETWORK
+docker network create -d overlay --attachable overlay-postgres 
+docker network ls
+docker network inspect overlay-postgres
+
+CREATE IMAGE FROM A DOCKERFILE:
+docker build -t postgres-metaverse-image ./
+
+RUN CONTAINER:
+docker container run -d --network=overlay-postgres --name postgres-metaverse-container -p 28970:5432 postgres-metaverse-image
+-----------------------------------------------
+CREATE IMAGE FROM A DOCKERFILE:
+docker build -t postgres-metaverse-image-2 ./
+
+RUN CONTAINER:
+docker container run -d --network=overlay-postgres --name postgres-metaverse-container-2 -p 28971:5432 postgres-metaverse-image-2
+
+
+docker exec -it postgres-metaverse-container sh
+docker exec -it postgres-metaverse-container-2 sh
+
+psql -h 10.0.22.2 -p 5432 -U postgres
+psql -h 10.0.22.4 -p 5432 -U postgres
+\c postgres
+\dt;
+\q - leave psql
+CTRL + P + Q -leave container
+
+
+DOCKER STACK
+docker stack deploy -c stackfile.yml grid
+docker stack services grid
+docker stack ps grid
+docker service scale grid_chrome=6

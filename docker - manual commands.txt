@@ -1,0 +1,93 @@
+POSTGRES
+docker-ski:
+psql -h localhost -p 5432 -U postgres
+
+POSTGRES LOCAL:
+psql -p 5433 -U postgres
+
+\c postgres
+You are now connected to database "postgres" as user "postgres".
+
+\dt; - list of tables
+\q - leave psql
+CTRL + P + Q -leave container
+
+-----------------------------------------------
+ATTACH TO DOCKER CONTAINER
+docker ps - to get the name of the existing container
+docker exec -it postgres-metaverse-container sh     // to get a bash shell in the container
+docker exec -it postgres-0 sh
+
+-----------------------------------------------
+DOCKER NETWORK
+docker network create -d overlay --attachable overlay-postgres 
+docker network ls
+docker network inspect overlay-postgres
+
+docker network connect overlay-postgres postgres-metaverse-container    // Connect a running container to a network
+-----------------------------------------------
+CREATE IMAGE FROM A DOCKERFILE:
+docker image rm postgres-metaverse-image
+docker build -t postgres-metaverse-image ./
+
+RUN CONTAINER:
+docker container rm postgres-metaverse-container -f
+docker container run -d --network=overlay-postgres --name postgres-metaverse-container -p 28970:5432 postgres-metaverse-image
+-----------------------------------------------
+CREATE IMAGE FROM A DOCKERFILE:
+docker image rm postgres-metaverse-image-2 -f
+docker build -t postgres-metaverse-image-2 ./
+
+RUN CONTAINER:
+docker container rm postgres-metaverse-container-2
+docker container run -d --network=overlay-postgres --name postgres-metaverse-container-2 -p 28971:5432 postgres-metaverse-image-2
+------------------------------------------------
+
+DELETE DANGLING IMAGES
+docker image prune --filter="dangling=true"
+
+IP OF WIN CONTAINER
+docker inspect -f "{{ .NetworkSettings.Networks.nat.IPAddress }}" web1iis
+IP OF LINUX CONTAINER
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' relaxed_mendel
+
+DOKER SWARM
+docker swarm join-token manager
+docker swarm leave --force
+
+DOCKER SERVICES CONNECTED WITH OVERLAY NETWORK
+docker service create -d --name pinger --replicas 2 --network overnet alpine sleep 1d
+docker service ls 
+docker service ps pinger
+docker network inspect overnet
+
+docker service rm $(docker service ls -q)
+
+DOCKER VOLUMES 
+docker container run -dit --name voltest --mount source=ubervol,target=/vol alpine:latest
+
+VOLUMES DIR 
+\\wsl$\docker-desktop-data\version-pack-data\community\docker\volumes\psvol\_data
+
+DOCKER SECRETS
+
+
+DOCKER STACK
+docker stack deploy -c stackfile.yml grid
+docker stack services grid
+docker stack ps grid
+
+
+docker logs -f conainer_id
+
+DOCKER SCALE
+docker service scale grid_chrome=6
+docker service update --replicas=10 grid_chrome
+
+ADDITIONAL
+' in win instead of \ to escape carriage returns
+docker info 
+
+Q&A: 
+Swarm with services vs Stack?
+Compose vs Stack?
